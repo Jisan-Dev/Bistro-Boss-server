@@ -20,10 +20,16 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const menuCollection = client.db('BistroDB').collection('menu');
+    const reviewCollection = client.db('BistroDB').collection('reviews');
 
     app.get('/menu', async (req, res) => {
       const menus = await menuCollection.find().toArray();
       res.send(menus);
+    });
+    app.get('/reviews', async (req, res) => {
+      const reviews = await reviewCollection.find().toArray();
+      console.log(reviews);
+      res.send(reviews);
     });
 
     // Send a ping to confirm a successful connection
