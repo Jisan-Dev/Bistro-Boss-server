@@ -21,15 +21,25 @@ async function run() {
   try {
     const menuCollection = client.db('BistroDB').collection('menu');
     const reviewCollection = client.db('BistroDB').collection('reviews');
+    const cartCollection = client.db('BistroDB').collection('cart');
 
+    // to get all the menu data
     app.get('/menu', async (req, res) => {
       const menus = await menuCollection.find().toArray();
       res.send(menus);
     });
+
+    // to get all the reviews data
     app.get('/reviews', async (req, res) => {
       const reviews = await reviewCollection.find().toArray();
-      console.log(reviews);
       res.send(reviews);
+    });
+
+    // to save a cart data
+    app.post('/cart', async (req, res) => {
+      const cart = req.body;
+      const result = await cartCollection.insertOne(cart);
+      res.json(result);
     });
 
     // Send a ping to confirm a successful connection
