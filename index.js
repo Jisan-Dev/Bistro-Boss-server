@@ -3,7 +3,7 @@ const cors = require('cors');
 const port = process.env.PORT || 5000;
 const app = express();
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.chn7ebi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 app.use(cors());
@@ -47,6 +47,13 @@ async function run() {
     app.post('/cart', async (req, res) => {
       const cart = req.body;
       const result = await cartCollection.insertOne(cart);
+      res.json(result);
+    });
+
+    // to delete a specific cart by id
+    app.delete('/cart/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
       res.json(result);
     });
 
