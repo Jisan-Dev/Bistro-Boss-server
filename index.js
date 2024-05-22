@@ -35,6 +35,14 @@ async function run() {
       res.send(reviews);
     });
 
+    // to get all the cart data by a specific user email
+    app.get('/cart', async (req, res) => {
+      const email = req.query?.email;
+      const carts = await cartCollection.find({ email: email }).toArray();
+      console.log(carts);
+      res.send(carts);
+    });
+
     // to save a cart data
     app.post('/cart', async (req, res) => {
       const cart = req.body;
