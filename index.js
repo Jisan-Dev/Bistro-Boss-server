@@ -44,6 +44,13 @@ async function run() {
       res.send(result);
     });
 
+    // to delete a user
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await userCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
     // to get all the menu data
     app.get('/menu', async (req, res) => {
       const menus = await menuCollection.find().toArray();
