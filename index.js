@@ -32,8 +32,20 @@ async function run() {
       res.send({ token });
     });
 
+    // middlewares
+    const verifyToken = (req, res, next) => {
+      console.log('inside verify token', req.headers.authorization);
+      if (!req.headers.authorization) return res.status(401).send({ message: 'forbidden access' });
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(401).send({ message: 'forbidden access' });
+        req.decodedUser = decoded;
+        next();
+      });
+    };
+
     // to get all users data
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyToken, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
