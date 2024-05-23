@@ -19,9 +19,17 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
+    const userCollection = client.db('BistroDB').collection('users');
     const menuCollection = client.db('BistroDB').collection('menu');
     const reviewCollection = client.db('BistroDB').collection('reviews');
     const cartCollection = client.db('BistroDB').collection('cart');
+
+    // to save a user data
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     // to get all the menu data
     app.get('/menu', async (req, res) => {
@@ -39,7 +47,6 @@ async function run() {
     app.get('/cart', async (req, res) => {
       const email = req.query?.email;
       const carts = await cartCollection.find({ email: email }).toArray();
-      console.log(carts);
       res.send(carts);
     });
 
