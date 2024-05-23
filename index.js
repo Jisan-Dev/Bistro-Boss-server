@@ -27,6 +27,13 @@ async function run() {
     // to save a user data
     app.post('/users', async (req, res) => {
       const user = req.body;
+      // insert email if user already doesn't exist
+      // we can do this in many ways (1. email unique, 2. upsert , 3. simple checking)
+      const isExist = await userCollection.findOne({ email: user.email });
+      console.log(isExist);
+      if (isExist) {
+        return res.send({ message: 'user already exists', insertedId: null });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
