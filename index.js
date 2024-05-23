@@ -44,8 +44,16 @@ async function run() {
       });
     };
 
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decodedUser.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === 'Admin';
+      if (!isAdmin) return res.status(403).send('forbidden access');
+      next();
+    };
+
     // to get all users data
-    app.get('/users', verifyToken, async (req, res) => {
+    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
@@ -64,7 +72,7 @@ async function run() {
     });
 
     // to delete a user
-    app.delete('/users/:id', async (req, res) => {
+    app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const result = await userCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
@@ -86,7 +94,7 @@ async function run() {
     });
 
     // to give a specific user role of admin
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = { $set: { role: 'Admin' } };
