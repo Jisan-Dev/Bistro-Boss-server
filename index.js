@@ -108,6 +108,13 @@ async function run() {
       res.send(menus);
     });
 
+    // to insert a data in menu collection
+    app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
+      const menu = req.body;
+      const result = await menuCollection.insertOne(menu);
+      res.send(result);
+    });
+
     // to get all the reviews data
     app.get('/reviews', async (req, res) => {
       const reviews = await reviewCollection.find().toArray();
