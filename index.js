@@ -115,6 +115,13 @@ async function run() {
       res.send(result);
     });
 
+    // to delete a data from menu collection by _id
+    app.delete('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const result = await menuCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
     // to get all the reviews data
     app.get('/reviews', async (req, res) => {
       const reviews = await reviewCollection.find().toArray();
