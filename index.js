@@ -108,6 +108,16 @@ async function run() {
       res.send(menus);
     });
 
+    // to get a single menu data by _id
+    app.get('/menu/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: id };
+      const menuItem = await menuCollection.findOne(query);
+      console.log(menuItem);
+      res.send(menuItem);
+    });
+
     // to insert a data in menu collection
     app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
       const menu = req.body;
