@@ -111,11 +111,18 @@ async function run() {
     // to get a single menu data by _id
     app.get('/menu/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: id };
       const menuItem = await menuCollection.findOne(query);
-      console.log(menuItem);
       res.send(menuItem);
+    });
+
+    // to update a single menu data by _id
+    app.patch('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: id };
+      const updateDoc = { $set: req.body };
+      const result = await menuCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     // to insert a data in menu collection
