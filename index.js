@@ -25,6 +25,7 @@ async function run() {
     const menuCollection = client.db('BistroDB').collection('menu');
     const reviewCollection = client.db('BistroDB').collection('reviews');
     const cartCollection = client.db('BistroDB').collection('cart');
+    const paymentCollection = client.db('BistroDB').collection('payments');
 
     // to create jwt access token
     app.post('/jwt', async (req, res) => {
@@ -181,6 +182,17 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    // to save payment info in db by creating a new collection for payments
+    app.post('/payment', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+
+      // carefully delete each item from the cart
+      const query = { _id: { $in: payment.cartIds.map((id) => new ObjectId(id)) } };
+      const deleteResult = await cartCollection.deleteMany(query);
+      res.send({ paymentResult, deleteResult });
     });
 
     // Send a ping to confirm a successful connection
