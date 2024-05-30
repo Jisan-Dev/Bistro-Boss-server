@@ -195,6 +195,16 @@ async function run() {
       res.send({ paymentResult, deleteResult });
     });
 
+    // to get payment histories for a specific user by email
+    app.get('/payments/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decodedUser.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const payments = await paymentCollection.find({ email: email }).toArray();
+      res.send(payments);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment. You successfully connected to MongoDB!');
