@@ -187,6 +187,7 @@ async function run() {
     // to save payment info in db by creating a new collection for payments
     app.post('/payment', async (req, res) => {
       const payment = req.body;
+      // payment.foodIds = payment.foodIds.map((id) => new ObjectId(id));
       const paymentResult = await paymentCollection.insertOne(payment);
 
       // carefully delete each item from the cart
@@ -203,6 +204,88 @@ async function run() {
       }
       const payments = await paymentCollection.find({ email: email }).toArray();
       res.send(payments);
+    });
+
+    // to get stats or analytics for admin dashboard
+    app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
+      const users = await userCollection.estimatedDocumentCount();
+      const menuItems = await menuCollection.estimatedDocumentCount();
+      const orders = await paymentCollection.estimatedDocumentCount();
+
+      // this is not the best way to get total revenue
+      // const payments = await paymentCollection.find().toArray();
+      // const revenue = payments.reduce((total, payment) => total + payment.price, 0);
+
+      const result = await paymentCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$price' },
+            },
+          },
+        ])
+        .toArray();
+
+      console.log(result);
+
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+      console.log(revenue);
+
+      res.send({ users, menuItems, orders, revenue });
+    });
+
+    // order status
+    /**
+     * ----------------------------
+     *    NON-Efficient Way
+     * ------------------------------
+     * 1. load all the payments
+     * 2. for every menuItemIds (which is an array), go find the item from menu collection
+     * 3. for every item in the menu collection that you found from a payment entry (document)
+     */
+
+    // order status using aggregate pipeline
+    app.get('/order-stats', async (req, res) => {
+      const result = await paymentCollection
+        .aggregate([
+          {
+            $unwind: '$foodIds',
+          },
+          {
+            $addFields: {
+              foodIdObject: { $toObjectId: '$foodIds' },
+            },
+          },
+          {
+            $lookup: {
+              from: 'menu',
+              localField: 'foodIdObject',
+              foreignField: '_id',
+              as: 'menuItem',
+            },
+          },
+          {
+            $unwind: '$menuItem',
+          },
+          {
+            $group: {
+              _id: '$menuItem.category',
+              quantity: { $sum: 1 },
+              revenue: { $sum: '$menuItem.price' },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              category: '$_id',
+              quantity: '$quantity',
+              revenue: '$revenue',
+            },
+          },
+        ])
+        .toArray();
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
